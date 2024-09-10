@@ -1,8 +1,8 @@
 package presentation;
 
-import tasks.Task;
-
 import java.util.ArrayList;
+
+import tasks.Task;
 
 /** A class that display to the user */
 public class Ui {
@@ -28,7 +28,7 @@ public class Ui {
     /**
      * Shows closing dialog when the application ends.
      */
-    public void closingDialog() {
+    public void closeDialog() {
         System.out.println("Aight, Cya later.");
     }
 
@@ -79,6 +79,11 @@ public class Ui {
         System.out.println(t);
     }
 
+    /**
+     * Prints the found task.
+     *
+     * @param foundTasks Is the task found.
+     */
     public void findDialog(ArrayList<Task> foundTasks) {
         for (int i = 0; i < foundTasks.size(); i++) {
             System.out.printf("%d. %s\n", i + 1, foundTasks.get(i).toString());

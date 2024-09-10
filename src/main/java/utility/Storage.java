@@ -1,10 +1,16 @@
 package utility;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Scanner;
+
 import tasks.DeadLine;
 import tasks.Event;
 import tasks.Task;
 import tasks.Todo;
-
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,6 +31,7 @@ public class Storage {
      * @param storagePath Where data is stored.
      */
     public Storage(String storagePath) {
+        assert storagePath != null && !storagePath.isEmpty() ;
         this.storagePath = storagePath;
     }
 
@@ -34,14 +41,23 @@ public class Storage {
      * @throws IOException When save fails.
      */
     public void save(ArrayList<Task> tasks) throws IOException {
-        File saveFile = new File(storagePath);
-        if (!saveFile.exists()) {
+        createFileIfItDoesNotExists();
+        writeTasksToFile(tasks);
+    }
+
+    private void createFileIfItDoesNotExists() throws IOException {
+        File file = new File(storagePath);
+        if (!file.exists()) {
             File dir = new File("./data");
             boolean dirCreated = dir.mkdir();
-            if (dirCreated && !saveFile.createNewFile()) {
-                throw new FileNotFoundException("Could not create file " + saveFile.getAbsolutePath());
+            if (dirCreated && !file.createNewFile()) {
+                throw new FileNotFoundException("Could not create file " + file.getAbsolutePath());
             }
         }
+        assert (file.exists());
+    }
+
+    private void writeTasksToFile(ArrayList<Task> tasks) throws IOException {
         FileWriter fw = new FileWriter(storagePath);
         for (Task task : tasks) {
             fw.write(task.getSaveFormat() + "\n");
@@ -59,6 +75,7 @@ public class Storage {
         if (!saveFile.exists()) {
             return new ArrayList<>();
         }
+
         return Files.lines(Path.of(storagePath))
                 .map(this::lineToTask)
                 .filter(Objects::nonNull)

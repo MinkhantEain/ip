@@ -1,3 +1,7 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 import exceptions.LukeException;
 import presentation.Ui;
 import tasks.DeadLine;
@@ -8,11 +12,10 @@ import utility.Parser;
 import utility.Storage;
 import utility.TaskList;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 
-/** Main class of the application. */
+/**
+ * Main class of the application.
+ */
 public class Luke {
     private final Storage storage;
     private final Parser parser;
@@ -21,6 +24,7 @@ public class Luke {
 
     /**
      * Returns an instance of Luke object.
+     *
      * @param filePath Where data is stored.
      * @throws IOException If filePath direct to a non *.txt file.
      */
@@ -31,18 +35,25 @@ public class Luke {
         this.ui = new Ui();
     }
 
-    /** Runs the Luke application */
+    private boolean parseLine(BufferedReader br) throws IOException {
+        try {
+            parser.parse(br.readLine());
+            return true;
+        } catch (LukeException e) {
+            System.out.println(e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Runs the Luke application
+     */
     public void run() throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         ui.greetDialog();
-        String line;
-        boolean flag = true;
-        while (flag) {
-            line = br.readLine();
-            try {
-                parser.parse(line);
-            } catch (LukeException e) {
-                System.out.println(e.getMessage());
+        boolean isRunning = true;
+        while (isRunning) {
+            if (!parseLine(br)) {
                 continue;
             }
 
@@ -51,47 +62,54 @@ public class Luke {
                 ui.listTaskDialog();
                 this.taskList.listTasks();
             }
-            case find -> {
-                ui.findDialog(taskList.findTasks(parser.getDescription()));
-            }
+
+            case find -> ui.findDialog(taskList.findTasks(parser.getDescription()));
+
             case mark -> {
                 Task t = taskList.markTask(parser.getIndex() - 1);
                 ui.markDialog(t);
             }
+
             case unmark -> {
                 Task t = taskList.unMarkTask(parser.getIndex() - 1);
                 ui.unMarkDialog(t);
             }
+
             case delete -> {
                 Task deletedTask = this.taskList.deleteTask(parser.getIndex() - 1);
-                ui.deleteTaskDialog(deletedTask, this.taskList.getTasksSize());
+                ui.deleteTaskDialog(deletedTask, this.taskList.getTaskListSize());
             }
+
             case todo -> {
                 Task t = new Todo(parser.getDescription());
                 this.taskList.addTask(t);
-                ui.addTaskDialog(t, taskList.getTasksSize());
+                ui.addTaskDialog(t, taskList.getTaskListSize());
             }
+
             case event -> {
                 Task t = new Event(parser.getDescription(), parser.getFrom(), parser.getTo());
                 this.taskList.addTask(t);
-                ui.addTaskDialog(t, taskList.getTasksSize());
+                ui.addTaskDialog(t, taskList.getTaskListSize());
             }
+
             case deadline -> {
                 Task t = new DeadLine(parser.getDescription(), parser.getBy());
                 this.taskList.addTask(t);
-                ui.addTaskDialog(t, taskList.getTasksSize());
+                ui.addTaskDialog(t, taskList.getTaskListSize());
             }
-            case bye -> flag = false;
+
+            case bye -> isRunning = false;
+
+            default -> { }
             }
+
         }
         taskList.save(storage);
-        ui.closingDialog();
+        ui.closeDialog();
         br.close();
     }
+
     public static void main(String[] args) throws IOException {
         new Luke("./data/Luke.txt").run();
     }
 }
-
-
-
